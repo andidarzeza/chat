@@ -1,0 +1,58 @@
+<style>
+    /* width */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: none;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgb(214, 89, 89);
+  border-radius: 25px;
+
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(170, 65, 65);
+}
+</style>
+
+<div class="message-displayer" id="message-displayer">
+    <div class="message" *ngFor="let message of messages" [className]="message.sender ? 'sent-message' : 'received-message'">
+
+        <div [className]="message.sender ? 'message-container right-sb' : 'message-container left-sb'" #messageTemRef [style.width.px] = "getMessageWidth(messageTemRef)">
+            <div class="message-text">
+                {{message.message}}
+    
+            </div>
+            <div class="sent_at">
+                {{message.sent_at | date:'h:mm a'}}
+            </div>
+        </div>
+
+        
+    </div>
+
+
+    <div class="scroll-bottom" (click)="scrollToBottom(1)" *ngIf="false">
+        <mat-icon>keyboard_arrow_down</mat-icon>
+        {{getScrollHeight()}}
+    </div>
+</div>
+
+
+<div class="input-area">
+
+    <textarea id="textarea-id" class="text-input" #textInput (keydown)="onKeyDown($event, textInput)"></textarea>
+    <!-- <input type="text" class="text-input" > -->
+    <div class="send-button">
+        <mat-icon>send</mat-icon>
+    </div>
+</div>
+
+
