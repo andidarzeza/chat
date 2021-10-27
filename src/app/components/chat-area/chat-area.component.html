@@ -22,13 +22,18 @@
 }
 </style>
 
-<div class="message-displayer" id="message-displayer">
-    <div class="message" *ngFor="let message of messages" [className]="message.sender ? 'sent-message' : 'received-message'">
+<img src="./../../../assets/images/solid-3.jpg" alt="" style="position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;">
 
-        <div [className]="message.sender ? 'message-container right-sb' : 'message-container left-sb'" #messageTemRef [style.width.px] = "getMessageWidth(messageTemRef)">
+<div class="message-displayer" id="message-displayer" (scroll)="onScroll($event)">
+    <div class="message" *ngFor="let message of messagesToDisplay" [className]="message.sender ? 'sent-message' : 'received-message'" [style.marginTop.px]="setTopMargin(message)" [style.paddingTop.px]="setTopMargin(message)">
+
+        <div [className]="getMessageStyleClass(message)" #messageTemRef>
             <div class="message-text">
                 {{message.message}}
-    
             </div>
             <div class="sent_at">
                 {{message.sent_at | date:'h:mm a'}}
@@ -38,8 +43,9 @@
         
     </div>
 
-
-    <div class="scroll-bottom" (click)="scrollToBottom(1)" *ngIf="false">
+    {{messages.length}}
+    {{currentHeight}}
+    <div class="scroll-bottom" (click)="scrollDown(1)" *ngIf="false">
         <mat-icon>keyboard_arrow_down</mat-icon>
         {{getScrollHeight()}}
     </div>
@@ -47,12 +53,14 @@
 
 
 <div class="input-area">
+    <div class="input-actions">
+        <mat-icon>tag_faces</mat-icon>
+        <mat-icon>attach_file</mat-icon>
 
-    <textarea id="textarea-id" class="text-input" #textInput (keydown)="onKeyDown($event, textInput)"></textarea>
+    </div>
+    <textarea id="textarea-id" placeholder="Type a message" class="text-input" #textInput (keydown)="onKeyDown($event, textInput)"></textarea>
     <!-- <input type="text" class="text-input" > -->
-    <div class="send-button">
+    <div class="send-button" (click)="sendMessage(undefined, textInput)">
         <mat-icon>send</mat-icon>
     </div>
 </div>
-
-

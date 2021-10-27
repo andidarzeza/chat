@@ -1,14 +1,17 @@
 import { AfterViewInit, Component, OnInit, TemplateRef } from '@angular/core';
+import { DateUtil } from 'src/app/date-util/date-util';
 
 
 class Message {
-  public message: string;
-  public sent_at: Date;
-  public sender: boolean;
-  constructor(message: string, sent_at: Date, sender: boolean) {
+  public message?: string;
+  public sent_at?: Date;
+  public sender?: boolean;
+  public firstOccurence?: boolean;
+  constructor(message: string, sent_at: Date, sender: boolean, firstOccurence: boolean) {
     this.message = message;
     this.sent_at = sent_at;
     this.sender = sender;
+    this.firstOccurence = firstOccurence;
   }
 }
 @Component({
@@ -24,42 +27,71 @@ export class ChatAreaComponent implements OnInit, AfterViewInit {
     ["8, false", "BACKSPACE"]
   ]);
 
+  currentHeight: number = 0;
+
+  public messagesToDisplay: Message[] = [
+    new Message("I'm good too, thank you!", new Date(), true, true),
+    new Message("I'm good too, thank you!", new Date(), true, true),
+    new Message("I'm good too, thank you!", new Date(), true, true),
+    new Message("I'm good too, thank you!", new Date(), true, true),
+    new Message("I'm good too, thank you!", new Date(), true, true),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+  ];
+
 
   public messages: Message[] = [
-    new Message("Hello Mario", new Date(), true),
-    new Message("Hello Andi", new Date(), false),
-    new Message("How are you?", new Date(), true),
-    new Message("I'm good, thanks! You?", new Date(), false),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-    new Message("I'm good too, thank you!", new Date(), true),
-  ]
+    new Message("I'm good too, thank you!", new Date(), true, true),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+    new Message("I'm good too, thank you!", new Date(), true, false),
+  ];
+
+  public latestMessage: Message | undefined = undefined;
   
   constructor() { }
 
   ngAfterViewInit(): void {
-    this.scrollToBottom(1);
+    this.updateHeight();
+    this.scrollDown(1);
   }
 
   ngOnInit(): void {
-    
+    const dateUtil = new DateUtil();
+    dateUtil.start();
   }
 
   public onKeyDown(event: KeyboardEvent, input: HTMLTextAreaElement): void { 
@@ -67,7 +99,7 @@ export class ChatAreaComponent implements OnInit, AfterViewInit {
     const key = this._getActionKey(event);
     switch(key) { 
       case "ENTER": { 
-        this._sendMessage(event, input)
+        this.sendMessage(event, input)
         break; 
       }
       case "ENTER+SHIFT": { 
@@ -75,7 +107,6 @@ export class ChatAreaComponent implements OnInit, AfterViewInit {
         break; 
       }
       case "BACKSPACE": { 
-        console.log("backspace");
         
         break; 
       }
@@ -84,34 +115,62 @@ export class ChatAreaComponent implements OnInit, AfterViewInit {
   }
 
   private _createNewLines(event: any): void {
-    const textarea = document.getElementById("textarea-id");
-    console.log(event?.srcElement.value);
-    
+    const textarea = document.getElementById("textarea-id");    
     if(textarea) {      
       textarea.style.height = textarea.offsetHeight + "px";
     }
   }
 
-  private _sendMessage(event: KeyboardEvent, input: HTMLTextAreaElement): void {
-    event.preventDefault();
+  public sendMessage(event: any, input: HTMLTextAreaElement): void {
+    event?.preventDefault();
     const enteredValue = input.value.trim();
-    if(enteredValue !== "")
-      this.messages.push(new Message(enteredValue, new Date(), Math.random() < 0.5));
-    this.scrollToBottom(50);
+    if(enteredValue !== "") {
+      const sender = Math.random() < 0.5;
+      let firstOccurence = true;
+      if(this.latestMessage) {
+        if(sender && this.latestMessage.sender) {
+          firstOccurence = false;
+        } else if(!sender && !this.latestMessage.sender) {
+          firstOccurence = false;
+        } else {
+          firstOccurence = true;
+        }
+      }
+      const message = new Message(enteredValue, new Date(), sender, firstOccurence);
+      this.messages.push(message);
+      this.scrollDown(50);
+      this.latestMessage = message;
+      this.updateMessagesToDisplay(0);
+    }
     input.value = "";
   }
 
-  scrollToBottom(time: number): void {
+  private updateMessagesToDisplay(total: number): void {
+    let sliceTotal = this.messagesToDisplay.length + total;
+    if(total === 0) {
+      sliceTotal = 20
+    }
+    this.messagesToDisplay = this.messages.slice(-sliceTotal);
+  }
+
+  scrollDown(time: number, howMuch?: number): void {
     const messageDisplayer = document.getElementById("message-displayer");
     setTimeout(()=> {
-      if(messageDisplayer) messageDisplayer.scrollTop = messageDisplayer.scrollHeight;
+      if(messageDisplayer) {
+        if(!howMuch) {
+          messageDisplayer.scrollTop = messageDisplayer.scrollHeight;
+        } else {
+          if(this.messages.length !== this.messagesToDisplay.length) 
+            messageDisplayer.scrollTop = howMuch;
+          else messageDisplayer.scrollTop = 0
+        }
+      }
     }, time);
   }
 
   getScrollHeight(): number {
     const messageDisplayer = document.getElementById("message-displayer");
     if(messageDisplayer) {
-      console.log(messageDisplayer.style.height);
       
       return messageDisplayer.scrollHeight - messageDisplayer.scrollTop - 735;
     }
@@ -123,8 +182,41 @@ export class ChatAreaComponent implements OnInit, AfterViewInit {
     return this.keyRegistry.get(event.keyCode + ", " + event.shiftKey)??"";
   }
 
-  getMessageWidth(tempRef: any) {
-    console.log(tempRef);
-    // return tempRef.offsetWidth + 100
+  setTopMargin(message: Message): number {
+    if(message.firstOccurence) {
+      return 10
+    }
+    return 0
+  }
+
+  getMessageStyleClass(message: Message): string {
+    let response = "message-container";
+    if (message.sender && message.firstOccurence) {
+      response = response + " right-sb";
+    } else if(!message.sender && message.firstOccurence) {
+      response = response + " left-sb";
+    }
+    return response;
+  }
+
+  onScroll(event: any): void {
+    const scrollTop = event.srcElement.scrollTop;
+    if(scrollTop === 0) {
+      event.preventDefault();
+      this.updateMessagesToDisplay(20);
+      this.updateHeight();
+    }
+    
+  }
+
+  updateHeight(): void {
+    setTimeout(() => {
+      const messageDisplayer = document.getElementById("message-displayer");
+      if(messageDisplayer) {
+        const difference = messageDisplayer.scrollHeight - this.currentHeight;
+        this.scrollDown(20  , 200);
+        this.currentHeight = messageDisplayer.scrollHeight
+      }
+    }, 1);
   }
 }
